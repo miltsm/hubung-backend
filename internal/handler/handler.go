@@ -23,5 +23,14 @@ func New() Handler {
 func (h *handler) Profile(c *gin.Context) {
 	id := c.Param("id")
 	profile := h.repo.GetProfile(id)
-	c.IndentedJSON(http.StatusOK, profile)  
+	contentType := c.ContentType()
+	if (contentType == "application/json") {
+		c.IndentedJSON(http.StatusOK, profile) 
+	} else {
+		c.HTML(http.StatusOK, "index.tmpl", gin.H{ 
+			"name": profile.Name,
+			"link_name": profile.Categories[0].Hubungan[0].Name,
+			"link": profile.Categories[0].Hubungan[0].Link,
+		})
+	}
 } 

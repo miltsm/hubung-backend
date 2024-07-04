@@ -7,6 +7,7 @@ import (
 
 func main() {
 	r := gin.Default()
+	r.LoadHTMLGlob("pkg/templates/*")
 	r.GET("/hubung/:id", handler.New().Profile)
 	r.Run(":8080")
 }
