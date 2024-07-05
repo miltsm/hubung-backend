@@ -1,17 +1,21 @@
 package repository
 
-import "github.com/miltsm/hubung-service/internal/model"
+import (
+	"github.com/miltsm/hubung-service/internal/model"
+	"gorm.io/gorm"
+)
 
 type Repository interface {
 	GetProfile(id string) model.Profile
 }
 
 type repository struct {
-	//TODO: db
+	db gorm.DB
 }
 
 func New() Repository {
-	return &repository{}
+	db := establishDB()
+	return &repository{ db: *db }
 }
 
 func (r *repository) GetProfile(id string) (model.Profile) {
