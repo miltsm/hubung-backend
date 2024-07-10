@@ -1,14 +1,16 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"github.com/miltsm/hubung-service/internal/repository"
+	view "github.com/miltsm/hubung-service/pkg/templates"
 )
 
 type Handler interface {
-	Profile(c *gin.Context)
+	RenderLogin(http.ResponseWriter, *http.Request)
+	Login(w http.ResponseWriter, r *http.Request)
 }
 
 type handler struct {
@@ -20,17 +22,13 @@ func New() Handler {
 	return &handler{ repo: repo }
 }
 
-func (h *handler) Profile(c *gin.Context) {
-	id := c.Param("id")
-	profile := h.repo.GetProfile(id)
-	contentType := c.ContentType()
-	if (contentType == "application/json") {
-		c.IndentedJSON(http.StatusOK, profile) 
-	} else {
-		c.HTML(http.StatusOK, "index.tmpl", gin.H{ 
-			"name": profile.Name,
-			"link_name": profile.Categories[0].Hubungan[0].Name,
-			"link": profile.Categories[0].Hubungan[0].Link,
-		})
+func (h *handler) RenderLogin(w http.ResponseWriter, r *http.Request) {
+	err := view.Layout(view.Login()).Render(r.Context(), w)
+	if err != nil {
+		fmt.Print(err)
 	}
-} 
+}
+
+func (h *handler) Login(w http.ResponseWriter, r *http.Request) {
+	//TODO: passwordless login
+}
