@@ -1,11 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"net/http"
 
-	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/miltsm/hubung-service/internal/handler"
+	"github.com/miltsm/hubung-service/internal/middleware"
+)
+
+const (
+	GET_USERS="GET /v1/users"
+	POST_USERS="POST /v1/users"
 )
 
 func main() {
@@ -14,10 +21,22 @@ func main() {
 		log.Fatal("Error loading .env file")
 	}
 
-	r := gin.Default()
-	r.LoadHTMLGlob("pkg/templates/*")
+	r := http.NewServeMux()
 	h := handler.New()
-	r.GET("/hubung/:id", h.Profile)
-	r.GET("/login", h.Profile)
-	r.Run(":8080")
+	
+	r.HandleFunc(GET_USERS, h.RenderLogin)
+	r.HandleFunc(POST_USERS, h.Login)
+
+	stack := middleware.CreateStack(
+		middleware.Logging,
+	)
+
+	s := http.Server {
+		Addr: ":8080",
+		Handler: stack(r),
+	}
+
+	fmt.Println("Server listening on port 8080")
+	err = s.ListenAndServe()
+	fmt.Println(err)
 }

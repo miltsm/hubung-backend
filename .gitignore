@@ -22,3 +22,5 @@ go.work
 go.work.sums
 
 *.env
+
+*_templ.go
