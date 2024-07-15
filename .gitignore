@@ -24,3 +24,5 @@ go.work.sums
 *.env
 
 *_templ.go
+
+/db

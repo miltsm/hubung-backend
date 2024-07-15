@@ -2,41 +2,42 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
+	"os"
 
-	"github.com/joho/godotenv"
 	"github.com/miltsm/hubung-service/internal/handler"
 	"github.com/miltsm/hubung-service/internal/middleware"
 )
 
 const (
-	GET_USERS="GET /v1/users"
-	POST_USERS="POST /v1/users"
+	PORT="SERVER_PORT"
+	GET_SESSION="GET /sessions"	//render login page
+	POST_SESSION="POST /sessions" //request server challenge
+	PUT_SESSION="PUT /sessions" //send to server to validate key
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
 	r := http.NewServeMux()
 	h := handler.New()
 	
-	r.HandleFunc(GET_USERS, h.RenderLogin)
-	r.HandleFunc(POST_USERS, h.Login)
+	r.HandleFunc(GET_SESSION, h.RenderLogin)
+	r.HandleFunc(POST_SESSION, h.Login)
+
+	v1 := http.NewServeMux()
+	v1.Handle("/v1/", http.StripPrefix("/v1", r))
 
 	stack := middleware.CreateStack(
 		middleware.Logging,
 	)
 
+	port := os.Getenv(PORT)
+
 	s := http.Server {
-		Addr: ":8080",
-		Handler: stack(r),
+		Addr: fmt.Sprintf(":%s", port),
+		Handler: stack(v1),
 	}
 
-	fmt.Println("Server listening on port 8080")
-	err = s.ListenAndServe()
+	fmt.Printf("Server listening on port %s\n", port)
+	err := s.ListenAndServe()
 	fmt.Println(err)
 }
