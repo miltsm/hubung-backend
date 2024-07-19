@@ -40,28 +40,3 @@ func Logging(next http.Handler) http.Handler {
 		log.Println(wrapped.statusCode, r.Method, r.URL.Path, time.Since(start))
 	})
 }
-
-// type middleware struct {
-// 	handler http.Handler
-// 	wauth *webauthn.WebAuthn
-// }
-
-// func New(base http.Handler) *middleware {
-// 	wconfig := &webauthn.Config{
-// 		RPDisplayName: "Go Webauthn",
-// 		RPID: "hubung",
-// 		RPOrigins: []string{  },
-// 	} 
-
-// 	wauth, err := webauthn.New(wconfig)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 		panic(err)
-// 	}
-
-// 	return &middleware{
-// 		handler: base,
-// 		wauth: wauth,
-// 	}
-// }
-

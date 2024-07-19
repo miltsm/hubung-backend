@@ -1,50 +1,53 @@
 package repository
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
 
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 const (
-	PGUser="POSTGRES_USER"
-	PGPassword="POSTGRES_PASSWORD"
-	PGDb="POSTGRES_DB"
-	PGPort="POSTGRES_PORT"
-	PGHost="POSTGRES_HOST"
-	PGPasswordPath="POSTGRES_PASSWORD_FILE"
+	PGUser         = "POSTGRES_USER"
+	PGPassword     = "POSTGRES_PASSWORD"
+	PGDb           = "POSTGRES_DB"
+	PGPort         = "POSTGRES_PORT"
+	PGHost         = "POSTGRES_HOST"
+	PGPasswordPath = "POSTGRES_PASSWORD_FILE"
 )
 
-func establishDB() (*gorm.DB) {
-	// db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
-	// if err != nil {
-	// 	panic("Failed to connect to db!")
-	// }
-	
+func establishDB() *sql.DB {
+
 	POSTGRES_USER, POSTGRES_DB, POSTGRES_PORT, POSTGRES_HOST, POSTGRES_PASSWORD_FILE := os.Getenv(PGUser), os.Getenv(PGDb), os.Getenv(PGPort), os.Getenv(PGHost), os.Getenv(PGPasswordPath)
 
 	//get password
 	root, err := os.Getwd()
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
 	rootFs := os.DirFS(root)
 	pwByte, err := fs.ReadFile(rootFs, POSTGRES_PASSWORD_FILE)
 	if err != nil {
-		panic(err)
+		panic(err.Error())
 	}
 
 	pswd := string(pwByte)
 
-	dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v sslmode=disable Timezone=Asia/Kuala_Lumpur", POSTGRES_HOST, POSTGRES_USER, pswd, POSTGRES_DB, POSTGRES_PORT)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	url := fmt.Sprintf("postgresql://%v:%v@%v:%v/%v", POSTGRES_USER, pswd, POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB)
+	db, err := sql.Open("pgx", url)
 	if err != nil {
-		panic("Failed to connect to db!")
+		fmt.Fprintf(os.Stderr, "Unable to connect to database: %v\n", err)
+		os.Exit(1)
 	}
-	
+
+	if err := db.PingContext(context.Background()); err != nil {
+		log.Fatal(err)
+	}
+
 	fmt.Println("DB connected!")
 
 	return db
